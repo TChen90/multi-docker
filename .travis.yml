@@ -1,0 +1,21 @@
+sudo: required
+services: 
+  - docker
+
+before_install:
+  - docker build -t tchen90/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true USERNAME/react-test npm test -- -- coverage
+
+after_success:
+  - docker build -t tchen90/multi-client ./client
+  - docker build -t tchen90/multi-nginx ./nginx
+  - docker build -t tchen90/multi-server ./server
+  - docker build -t tchen90/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" -- password-stdin
+  - docker push tchen90/multi-client
+  - docker push tchen90/multi-nginx
+  - docker push tchen90/multi-server
+  - docker push tchen90/multi-worker
+
